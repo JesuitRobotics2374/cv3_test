@@ -21,47 +21,31 @@ public final class ArmConstants {
   private ArmConstants() {}
 
   public static final int MOTOR_CAN_ID = 32;
-
-  /**
-   * Motor rotations per arm rotation, including the gearbox and any chain or belt stage after it.
-   * Every angle below is interpreted through this number, so a wrong value moves the arm to the
-   * wrong place.
-   */
-  public static final double GEAR_RATIO = 50.0;
-
-  /** Travel limits, enforced on the Talon as soft limits. */
-  public static final Angle MIN_ANGLE = Degrees.of(0);
-
+  public static final double GEAR_RATIO = 57.5;  // total arm gear ratio, including cyclodic. (an estimation)
+  public static final Angle MIN_ANGLE = Degrees.of(0);  //soft stops in ARM angle.
   public static final Angle MAX_ANGLE = Degrees.of(120);
+  public static final Angle STARTING_ANGLE = Degrees.of(0);  // Arm initializes at 0 deg on poweron
 
-  /**
-   * Where the arm physically rests when the robot boots -- horizontal, which is this mechanism's
-   * zero. The Kraken's onboard rotor encoder is relative, so it reads zero at power-on wherever the
-   * arm happens to be sitting; the mechanism seeds the encoder with this value at construction. The
-   * arm must actually be at rest at boot or every setpoint is offset by the difference.
-   */
-  public static final Angle STARTING_ANGLE = Degrees.of(0);
 
   /**
    * Motion Magic profile limits, in arm rotations per second and per second squared. Set slow for
    * bring-up: 0.1 rps is 36 deg/s, so full travel takes a little over three seconds. Walk these up
    * once the gains hold position cleanly.
    */
-  public static final double CRUISE_VELOCITY_RPS = 0.1;
+  public static final double CRUISE_VELOCITY_RPS = 0.33;
+  public static final double ACCELERATION_RPS2 = 1.0;
 
-  public static final double ACCELERATION_RPS2 = 0.2;
-
-  // Slot 0 gains. All zero until tuned on the real arm -- see the tuning note in Arm.
+  // Slot 0 configuration paramaters
   public static final double kS = 0.0;
-  public static final double kV = 0.0;
+  public static final double kV = 6.0;   //kV Voltage to move at speed.  Moving counterpart to kG, which is not moving
   public static final double kA = 0.0;
-  public static final double kG = 0.33;
-  public static final double kP = 50.0;
+  public static final double kG = 0.33;  //kG = Gravity feed-forward
+  public static final double kP = 50.0;  //kP looks high because it's voltage, and multiplied by gear ratio
   public static final double kI = 0.0;
   public static final double kD = 0.0;
 
   /** How much a bumper press moves kG while live-tuning. */
-  public static final double KG_STEP = 0.01;
+  public static final double KG_STEP = 0.01;  
 
   /** How much a bumper press moves kP while live-tuning. */
   public static final double KP_STEP = 10.0;

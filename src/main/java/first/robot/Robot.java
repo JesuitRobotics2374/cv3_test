@@ -16,8 +16,7 @@ public class Robot extends OpModeRobot {
       new CommandGamepad(DriverConstants.DRIVER_CONTROLLER_PORT);
 
   public Robot() {
-    // Whenever nothing else claims the arm -- including the moment the robot is enabled -- hold
-    // wherever it currently sits rather than driving to a fixed angle, so enabling never moves it.
+    // Whenever nothing else claims the arm hold arm position.
     arm.setDefaultCommand(arm.hold());
   }
 

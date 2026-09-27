@@ -16,29 +16,36 @@ import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 import org.wpilib.units.measure.Angle;
 
+/*  This is a Teleop Mode.  Multiple Teleop Modes can be defined and selected from the Drive
+* Station.  When this one is seleceted it will just do the arm.
+ */
+
+
+
 @Teleop
 public class ArmTeleop extends PeriodicOpMode {
   /** How often the stick and arm angles are echoed to the console, in seconds. */
   private static final double LOG_PERIOD = 1.0;
 
   public ArmTeleop(Robot robot) {
-    // Hold A to run the arm up to 15 degrees. Releasing hands it back to the default hold, which
-    // keeps it wherever the move left it.
-    robot.driverController.faceDown().whileTrue(robot.arm.goToAngle(Degrees.of(15)));
+    // faceDown on the driver controller is A. Hold it to move the arm to 15 degrees. Releas and
+    // will stay there
+    robot.driverController.faceDown().whileTrue(robot.arm.holdAtAngle(Degrees.of(15)));
 
-    // Bumpers step kP live and echo the value read back off the Talon. These claim no mechanism,
-    // so they can be pressed mid-move -- the travel keeps running and picks up each new gain.
+    // Bumpers adjust kP live and echo the value read back off the Talon. 
+    // These are independent of any mechanism, so they can be pressed while moving the arm
     robot.driverController.rightBumper().onTrue(robot.arm.increaseKp());
     robot.driverController.leftBumper().onTrue(robot.arm.decreaseKp());
 
-    // Point the right stick where you want the arm: full right is 0 degrees, straight up is 90.
-    // The trigger is true only while the stick names an angle the arm can actually reach, so
-    // centering it or swinging outside the travel range simply drops back to the default hold.
+    // Arm angle tracks the right stick angle:  full right is 0 degrees, straight up is 90.
+    // Invalid stick angle is ignored, and arm just holds until there is valid input.
     var stickTarget = new Trigger(() -> armAngleFromStick(robot.driverController).isPresent());
     stickTarget.whileTrue(robot.arm.followAngle(() -> armAngleFromStick(robot.driverController)));
 
     // Raw stick direction beside the angle it resolves to, so a direction the arm refuses is
     // visibly distinct from one it never read.
+    // Note the use of "OptionalDouble and Angle".  You can check .isPresent.   Provides a way to
+    // know if the value is valid or not before trying to act on it.
     addPeriodic(
         () -> {
           OptionalDouble direction = stickDirection(robot.driverController);
@@ -55,11 +62,13 @@ public class ArmTeleop extends PeriodicOpMode {
 
   /**
    * The direction the right stick points, in degrees counterclockwise from full right, or empty if
-   * the stick is close enough to center that its direction is only noise.
+   * the stick is in the deadband
    *
-   * <p>Only Y is negated. The gamepad already reports right as positive X, but up as negative Y, so
-   * flipping Y alone puts the stick into a conventional frame where atan2 measures counterclockwise
-   * from "full right" -- which is exactly the arm's own zero.
+   * Only Y is negated. The gamepad reports right as positive X, but up as negative Y, so
+   * flipping Y  puts the stick into a conventional frame where atan2 measures counterclockwise
+   * from "full right" which is the arms 0 angle
+   * 
+   * @return the angle at which the stick is pointing.  Empty if within Deadband
    */
   private static OptionalDouble stickDirection(CommandGamepad controller) {
     double right = controller.getRightX();
@@ -76,9 +85,11 @@ public class ArmTeleop extends PeriodicOpMode {
    * (arm horizontal), straight up is 90, and swinging further left reaches the 120-degree limit at
    * the upper left.
    *
-   * @return the angle to command, or empty if the stick is centered or points outside the travel
-   *     range, both of which mean "no command".
-   */
+   * @return the angle to command the arm to move to:
+   *         empty if the stick within deadband, 
+   *         empty if the angle is outside the soft stops of the arm travel. 
+   * 
+   *    */
   private static Optional<Angle> armAngleFromStick(CommandGamepad controller) {
     OptionalDouble direction = stickDirection(controller);
     if (direction.isEmpty()) {

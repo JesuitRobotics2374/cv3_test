@@ -31,15 +31,12 @@ import org.wpilib.units.measure.Angle;
  * A single-motor arm driven by a Kraken on Motion Magic position control, using the motor's onboard
  * rotor encoder for feedback.
  *
- * <p>Tuning order, with the arm free to move and someone on the disable button: raise {@code kG}
- * until the arm holds itself horizontal without drifting, then {@code kS} until it just overcomes
- * static friction, then {@code kV} and {@code kA} from a velocity sweep, and only then {@code kP}
- * and {@code kD} to clean up the remaining error. Tuning kP first fights the missing feedforward
- * and lands on gains that oscillate once the feedforward is added.
- *
- * <p>{@code kG} can be nudged live with {@link #increaseKg()} / {@link #decreaseKg()} rather than
+ * {@code kG} can be nudged live with {@link #increaseKg()} / {@link #decreaseKg()} rather than
  * redeploying for each value. Those change only the running config on the Talon -- once a value
  * works, copy it back into {@link ArmConstants} or the next boot reverts it.
+ * 
+ * Notice the use of Javadoc tags.  this will make the tooltips in your code work when you hover 
+ * over somethnig.
  */
 public class Arm implements Mechanism {
   private final TalonFX motor =
@@ -52,6 +49,9 @@ public class Arm implements Mechanism {
   private final Slot0Configs slot0 = new Slot0Configs();
 
   public Arm() {
+
+    //Arm constructor.   In this part of the code we are writing the motor configuration to the motor
+    //motors have multiple configuration slots, and we are using slot 0.
     slot0.GravityType = GravityTypeValue.Arm_Cosine;
     slot0.kS = ArmConstants.kS;
     slot0.kV = ArmConstants.kV;
@@ -129,34 +129,37 @@ public class Arm implements Mechanism {
   }
 
   /**
-   * Drives the arm to {@code target} and holds it there, going neutral once interrupted.
+   * Drives the arm to {@code target} and holds it there indefinitely, going neutral once
+   * interrupted. Never finishes on its own, so bind it to a trigger rather than placing it in a
+   * sequence -- a sequence waiting on this command would never advance.
    *
    * @param target the angle to hold, 0 horizontal and positive up.
    * @return the command.
    */
-  public Command goToAngle(Angle target) {
+  public Command holdAtAngle(Angle target) {
     return run(coroutine -> {
           motor.setControl(positionRequest.withPosition(target));
           coroutine.park();
         })
         .whenCanceled(motor::stopMotor)
-        .named("Arm to " + target.in(Degrees) + " deg");
+        .named("Arm hold at " + target.in(Degrees) + " deg");
   }
 
   /**
-   * Drives the arm to {@code target} and finishes once it arrives, for use in a sequence that
-   * should wait on the arm before moving on.
+   * Drives the arm to {@code target} and finishes once it arrives, within
+   * {@link ArmConstants#TOLERANCE}. Use this inside a sequence that should wait on the arm before
+   * moving on; use {@link #holdAtAngle(Angle)} to keep holding instead.
    *
    * @param target the angle to reach, 0 horizontal and positive up.
    * @return the command.
    */
-  public Command goToAngleAndFinish(Angle target) {
+  public Command goToAngle(Angle target) {
     return run(coroutine -> {
           motor.setControl(positionRequest.withPosition(target));
           coroutine.waitUntil(() -> isAtAngle(target));
         })
         .whenCanceled(motor::stopMotor)
-        .named("Arm to " + target.in(Degrees) + " deg and finish");
+        .named("Arm to " + target.in(Degrees) + " deg");
   }
 
   /** Holds the arm wherever it currently sits. Suitable as the default command. */
