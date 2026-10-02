@@ -10,7 +10,7 @@ import first.robot.mechanisms.Arm;
 import org.wpilib.units.measure.Angle;
 
 /**
- * Constants for the {@link Arm}.
+ * Constants for the {@link Arm}
  *
  * <p>Angle convention: 0 degrees is the arm held horizontal, positive is up. Motion Magic's
  * {@code Arm_Cosine} gravity feedforward assumes this convention -- it applies the full {@code kG}
@@ -20,11 +20,18 @@ import org.wpilib.units.measure.Angle;
 public final class ArmConstants {
   private ArmConstants() {}
 
-  public static final int MOTOR_CAN_ID = 32;
-  public static final double GEAR_RATIO = 57.5;  // total arm gear ratio, including cyclodic. (an estimation)
-  public static final Angle MIN_ANGLE = Degrees.of(0);  //soft stops in ARM angle.
-  public static final Angle MAX_ANGLE = Degrees.of(120);
-  public static final Angle STARTING_ANGLE = Degrees.of(0);  // Arm initializes at 0 deg on poweron
+  public static final int SHOULDER_MOTOR_CAN_ID = 32;
+  public static final int ELBOW_MOTOR_CAN_ID = 33; // change later
+  
+  public static final double SHOULDER_GEAR_RATIO = 58.5;  // total arm gear ratio, including cyclodic. (an estimation)
+  public static final double ELBOW_GEAR_RATIO = 58.5;  // total arm gear ratio, including cyclodic. (an estimation)
+  public static final Angle SHOULDER_MIN_ANGLE = Degrees.of(0);  //soft stops in ARM angle.
+  public static final Angle SHOULDER_MAX_ANGLE = Degrees.of(120);
+  public static final Angle SHOULDER_STARTING_ANGLE = Degrees.of(0);  // Arm initializes at 0 deg on poweron
+
+  public static final Angle ELBOW_STARTING_ANGLE = Degrees.of(0); 
+  public static final Angle ELBOW_MIN_ANGLE = Degrees.of(0);  //soft stops in ARM angle.
+  public static final Angle ELBOW_MAX_ANGLE = Degrees.of(120);
 
 
   /**

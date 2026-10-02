@@ -30,7 +30,7 @@ public class ArmTeleop extends PeriodicOpMode {
   public ArmTeleop(Robot robot) {
     // faceDown on the driver controller is A. Hold it to move the arm to 15 degrees. Releas and
     // will stay there
-    robot.driverController.faceDown().whileTrue(robot.arm.holdAtAngle(Degrees.of(15)));
+    robot.driverController.faceDown().whileTrue(robot.arm.shoulderHoldAtAngle(Degrees.of(15)));
 
     // Bumpers adjust kP live and echo the value read back off the Talon. 
     // These are independent of any mechanism, so they can be pressed while moving the arm
@@ -40,7 +40,7 @@ public class ArmTeleop extends PeriodicOpMode {
     // Arm angle tracks the right stick angle:  full right is 0 degrees, straight up is 90.
     // Invalid stick angle is ignored, and arm just holds until there is valid input.
     var stickTarget = new Trigger(() -> armAngleFromStick(robot.driverController).isPresent());
-    stickTarget.whileTrue(robot.arm.followAngle(() -> armAngleFromStick(robot.driverController)));
+    stickTarget.whileTrue(robot.arm.shoulderFollowAngle(() -> armAngleFromStick(robot.driverController)));
 
     // Raw stick direction beside the angle it resolves to, so a direction the arm refuses is
     // visibly distinct from one it never read.
