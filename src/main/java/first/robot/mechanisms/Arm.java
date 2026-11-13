@@ -6,6 +6,7 @@ package first.robot.mechanisms;
 
 import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Rotations;
+import static org.wpilib.units.Units.Seconds;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
@@ -26,6 +27,7 @@ import org.wpilib.command3.Mechanism;
 import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.Time;
 
 /**
  * A single-motor arm driven by a Kraken on Motion Magic position control, using the motor's onboard
@@ -192,6 +194,25 @@ public class Arm implements Mechanism {
         .whenCanceled(motor::stopMotor)
         .named("Arm Follow Angle");
   }
+  public Command homingElevator() {
+        double initialCurrent = motor.getStatorCurrent().getValueAsDouble();
+        double spikeChange = 2.0;
+        return run(coroutine -> {
+            motor.setVoltage(ArmConstants.HOMING_VOLTAGE);
+
+            coroutine.waitUntil(() -> isStalled(initialCurrent, spikeChange), Time.ofBaseUnits(5, Seconds));
+
+            coroutine.park();
+        })
+        .named("Zero Arm");
+    }
+        public boolean isStalled(double initialCurrent, double spikeChange) {
+        double error = 0.5;
+        boolean isStalled1 = motor.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange 
+                            && Math.abs(motor.getVelocity().getValueAsDouble()) < error;
+        
+        return isStalled1;
+    }
 
   /** Cuts output and lets the arm fall to its brake-mode rest. */
   public Command stop() {
