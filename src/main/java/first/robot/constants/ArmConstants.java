@@ -43,7 +43,7 @@ public final class ArmConstants {
   public static final double kP = 50.0;  //kP looks high because it's voltage, and multiplied by gear ratio
   public static final double kI = 0.0;
   public static final double kD = 0.0;
-    public static final double HOMING_VOLTAGE = 2.0;
+    public static final double HOMING_VOLTAGE = 0.5;
 
   /** How much a bumper press moves kG while live-tuning. */
   public static final double KG_STEP = 0.01;  

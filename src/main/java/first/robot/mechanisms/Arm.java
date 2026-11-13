@@ -197,8 +197,11 @@ public class Arm implements Mechanism {
   public Command homingElevator() {
         double initialCurrent = motor.getStatorCurrent().getValueAsDouble();
         double spikeChange = 2.0;
+        System.out.println("method ran");
         return run(coroutine -> {
+          System.out.println("method ran except other");
             motor.setVoltage(ArmConstants.HOMING_VOLTAGE);
+          
 
             coroutine.waitUntil(() -> isStalled(initialCurrent, spikeChange), Time.ofBaseUnits(5, Seconds));
 

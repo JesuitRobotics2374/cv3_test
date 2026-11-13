@@ -12,6 +12,8 @@ import first.robot.mechanisms.Arm;
 
 import java.util.Optional;
 import java.util.OptionalDouble;
+
+import org.wpilib.command3.Command;
 import org.wpilib.command3.Trigger;
 import org.wpilib.command3.button.CommandGamepad;
 import org.wpilib.opmode.PeriodicOpMode;
@@ -28,7 +30,6 @@ import org.wpilib.units.measure.Angle;
 public class ArmTeleop extends PeriodicOpMode {
   /** How often the stick and arm angles are echoed to the console, in seconds. */
   private static final double LOG_PERIOD = 1.0;
-  private Arm arm = new Arm();
 
   public ArmTeleop(Robot robot) {
     // faceDown on the driver controller is A. Hold it to move the arm to 15 degrees. Releas and
@@ -37,7 +38,11 @@ public class ArmTeleop extends PeriodicOpMode {
 
     // Bumpers adjust kP live and echo the value read back off the Talon. 
     // These are independent of any mechanism, so they can be pressed while moving the arm
-    robot.driverController.rightBumper().onTrue(arm.homingElevator());
+    robot.driverController.rightBumper().onTrue(robot.arm.homingElevator());
+
+    Trigger trigger = new Trigger(robot.driverController.faceUp());
+    trigger.onTrue(robot.arm.homingElevator());
+  
     // robot.driverController.leftBumper().onTrue(robot.arm.decreaseKp());
 
     // Arm angle tracks the right stick angle:  full right is 0 degrees, straight up is 90.
