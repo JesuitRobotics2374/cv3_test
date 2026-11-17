@@ -12,12 +12,12 @@ import first.robot.mechanisms.Arm;
 
 public class Robot extends OpModeRobot {
   public final Arm arm = new Arm();
-  final CommandGamepad driverController =
+  public final CommandGamepad driverController =
       new CommandGamepad(DriverConstants.DRIVER_CONTROLLER_PORT);
 
   public Robot() {
     // Whenever nothing else claims the arm hold arm position.
-    arm.setDefaultCommand(arm.hold());
+    // arm.setDefaultCommand(arm.hold());
   }
 
   @Override
