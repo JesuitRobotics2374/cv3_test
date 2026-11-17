@@ -313,6 +313,28 @@ public class Arm implements Mechanism {
         .whenCanceled(shoulder::stopMotor)
         .named("Shoulder Follow Angle");
   }
+  public Command homingElevator() {
+        double initialCurrent = motor.getStatorCurrent().getValueAsDouble();
+        double spikeChange = 2.0;
+        System.out.println("method ran");
+        return run(coroutine -> {
+          System.out.println("method ran except other");
+            motor.setVoltage(ArmConstants.HOMING_VOLTAGE);
+          
+
+            coroutine.waitUntil(() -> isStalled(initialCurrent, spikeChange), Time.ofBaseUnits(5, Seconds));
+
+            coroutine.park();
+        })
+        .named("Zero Arm");
+    }
+        public boolean isStalled(double initialCurrent, double spikeChange) {
+        double error = 0.5;
+        boolean isStalled1 = motor.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange 
+                            && Math.abs(motor.getVelocity().getValueAsDouble()) < error;
+        
+        return isStalled1;
+    }
 
    public Command elbowFollowAngle(Supplier<Optional<Angle>> targetSupplier) {
     return run(coroutine -> {
