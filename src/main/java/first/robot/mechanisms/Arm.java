@@ -26,6 +26,7 @@ import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.hardware.bus.CANPort;
+import org.wpilib.system.SystemServer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Time;
 
@@ -313,28 +314,6 @@ public class Arm implements Mechanism {
         .whenCanceled(shoulder::stopMotor)
         .named("Shoulder Follow Angle");
   }
-  public Command homingElevator() {
-        double initialCurrent = motor.getStatorCurrent().getValueAsDouble();
-        double spikeChange = 2.0;
-        System.out.println("method ran");
-        return run(coroutine -> {
-          System.out.println("method ran except other");
-            motor.setVoltage(ArmConstants.HOMING_VOLTAGE);
-          
-
-            coroutine.waitUntil(() -> isStalled(initialCurrent, spikeChange), Time.ofBaseUnits(5, Seconds));
-
-            coroutine.park();
-        })
-        .named("Zero Arm");
-    }
-        public boolean isStalled(double initialCurrent, double spikeChange) {
-        double error = 0.5;
-        boolean isStalled1 = motor.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange 
-                            && Math.abs(motor.getVelocity().getValueAsDouble()) < error;
-        
-        return isStalled1;
-    }
 
    public Command elbowFollowAngle(Supplier<Optional<Angle>> targetSupplier) {
     return run(coroutine -> {
@@ -348,27 +327,37 @@ public class Arm implements Mechanism {
         .whenCanceled(elbow::stopMotor)
         .named("Elbow Follow Angle");
   }
-  public Command homingElevator() {
-        double initialCurrent = motor.getStatorCurrent().getValueAsDouble();
-        double spikeChange = 2.0;
+
+  public Command homingArm() {
+        double initialCurrent = shoulder.getStatorCurrent().getValueAsDouble();
+        double spikeChange = 1.0;
         System.out.println("method ran");
         return run(coroutine -> {
           System.out.println("method ran except other");
-            motor.setVoltage(ArmConstants.HOMING_VOLTAGE);
-          
-
+            shoulder.setVoltage(ArmConstants.HOMING_VOLTAGE);
+            
             coroutine.waitUntil(() -> isStalled(initialCurrent, spikeChange), Time.ofBaseUnits(5, Seconds));
-
+            System.out.println("STALLED");
+            shoulder.setPosition(0.0);
+          
+            shoulder.setVoltage(0.0);
             coroutine.park();
         })
         .named("Zero Arm");
     }
-        public boolean isStalled(double initialCurrent, double spikeChange) {
-        double error = 0.5;
-        boolean isStalled1 = motor.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange 
-                            && Math.abs(motor.getVelocity().getValueAsDouble()) < error;
-        
-        return isStalled1;
+
+    public boolean isStalled(double initialCurrent, double spikeChange) {
+      double error = 0.3;
+      boolean isStalled1 = shoulder.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange
+          && Math.abs(shoulder.getVelocity().getValueAsDouble()) < error;
+      System.out.println("Stalled: " + (shoulder.getStatorCurrent().getValueAsDouble() - initialCurrent > spikeChange));
+      System.out.println("Stopped: " + (Math.abs(shoulder.getVelocity().getValueAsDouble()) < error));
+      System.out.println("Stator:" + shoulder.getStatorCurrent().getValueAsDouble());
+      System.out.println("Velocity:" + shoulder.getVelocity().getValueAsDouble());
+      System.out.println("initialCurrent: " + initialCurrent);
+      System.out.println("spike: " + (shoulder.getStatorCurrent().getValueAsDouble() - initialCurrent));
+
+      return isStalled1;
     }
 
   /** Cuts output and lets the arm fall to its brake-mode rest. */

@@ -16,6 +16,7 @@ import java.util.OptionalDouble;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Trigger;
 import org.wpilib.command3.button.CommandGamepad;
+import org.wpilib.hardware.hal.OpModeOption;
 import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 import org.wpilib.units.measure.Angle;
@@ -38,10 +39,10 @@ public class ArmTeleop extends PeriodicOpMode {
 
     // Bumpers adjust kP live and echo the value read back off the Talon. 
     // These are independent of any mechanism, so they can be pressed while moving the arm
-    robot.driverController.rightBumper().onTrue(robot.arm.homingElevator());
+    robot.driverController.rightBumper().onTrue(robot.arm.homingArm());
 
     Trigger trigger = new Trigger(robot.driverController.faceUp());
-    trigger.onTrue(robot.arm.homingElevator());
+    trigger.onTrue(robot.arm.homingArm());
   
     // robot.driverController.leftBumper().onTrue(robot.arm.decreaseKp());
 
@@ -54,18 +55,19 @@ public class ArmTeleop extends PeriodicOpMode {
     // visibly distinct from one it never read.
     // Note the use of "OptionalDouble and Angle".  You can check .isPresent.   Provides a way to
     // know if the value is valid or not before trying to act on it.
-    addPeriodic(
-        () -> {
-          OptionalDouble direction = stickDirection(robot.driverController);
-          Optional<Angle> target = armAngleFromStick(robot.driverController);
-          System.out.printf(
-              "Stick %s -> arm %s%n",
-              direction.isPresent()
-                  ? String.format("%6.1f deg", direction.getAsDouble())
-                  : "  centered",
-              target.map(angle -> String.format("%6.1f deg", angle.in(Degrees))).orElse("    hold"));
-        },
-        LOG_PERIOD);
+    
+    // addPeriodic(
+    //     () -> {
+    //       OptionalDouble direction = stickDirection(robot.driverController);
+    //       Optional<Angle> target = armAngleFromStick(robot.driverController);
+    //       System.out.printf(
+    //           "Stick %s -> arm %s%n",
+    //           direction.isPresent()
+    //               ? String.format("%6.1f deg", direction.getAsDouble())
+    //               : "  centered",
+    //           target.map(angle -> String.format("%6.1f deg", angle.in(Degrees))).orElse("    hold"));
+    //     },
+    //     LOG_PERIOD);
   }
 
   /**
@@ -105,8 +107,8 @@ public class ArmTeleop extends PeriodicOpMode {
     }
 
     double degrees = direction.getAsDouble();
-    if (degrees < ArmConstants.MIN_ANGLE.in(Degrees)
-        || degrees > ArmConstants.MAX_ANGLE.in(Degrees)) {
+    if (degrees < ArmConstants.SHOULDER_MIN_ANGLE.in(Degrees)
+        || degrees > ArmConstants.SHOULDER_MAX_ANGLE.in(Degrees)) {
       return Optional.empty();
     }
     return Optional.of(Degrees.of(degrees));
